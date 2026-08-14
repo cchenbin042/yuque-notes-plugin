@@ -1,0 +1,30 @@
+{
+  "name": "yuque-notes-plugin",
+  "version": "0.1.0",
+  "description": "Save messy notes (text + images) to a Yuque knowledge base, classified by the model.",
+  "keywords": ["dsh-plugin", "yuque", "notes", "knowledge-base"],
+  "type": "module",
+  "license": "MIT",
+  "files": ["lib", "cordis.patch.yml"],
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-attachment": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@types/node": "^24.0.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
+  },
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } }
+}

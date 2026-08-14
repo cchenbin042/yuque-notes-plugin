@@ -1,0 +1,6 @@
+- insert:
+    - id: yuque-notes
+      name: yuque-notes-plugin
+      config:
+        bookName: 我的笔记
+        token: !!js process.env.YUQUE_TOKEN
