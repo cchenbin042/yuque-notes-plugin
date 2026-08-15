@@ -91,16 +91,57 @@ pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"
 
 ## 内置 skill：yuque-pdf-notes
 
-仓库自带 `yuque-pdf-notes` skill（`.dsh/skills/yuque-pdf-notes/SKILL.md`），把「PDF 整理成笔记存到语雀」的工作流固化：pypdf 提取文本与插图 → 组装含图 Markdown → 走 `yuque_list_toc` / `yuque_create_dir` / `yuque_create_doc` 保存，并强制校验图片全部上传成功。
+插件还附带一个 dsh skill：**把 PDF 课件整理成带插图的笔记存进语雀**。它会自动完成「提取文本 → 提取插图 → 组装 Markdown → 保存到语雀」整个流程，不用你手动拆 PDF。
 
-安装到本机（dsh 从 `~/.agents/skills/` 发现）：
+### 需要什么（前置条件）
+
+| 条件 | 说明 |
+| --- | --- |
+| 插件已安装并配置好 | 见上方「安装」「配置」，语雀与图床 token 就绪 |
+| 本机装有 Python 3 | skill 用 `pypdf` 提取 PDF 文本与图片：`pip install pypdf` |
+| 有 PDF 文件路径 | 告诉模型 PDF 在本机的位置 |
+
+### 安装（二选一）
+
+**方式 A：项目内自动发现（零安装）**
+
+`.dsh/skills/` 在仓库根目录里，任何在项目目录中运行的 dsh 会话（如仓库内 headless 调试）会自动发现它，无需额外操作。
+
+**方式 B：全局安装（推荐，任何目录都生效）**
+
+把 skill 复制到 dsh 的全局 skills 目录，所有 dsh 会话（包括 web 界面）都能用：
 
 ```sh
 mkdir -p ~/.agents/skills
 cp -r .dsh/skills/yuque-pdf-notes ~/.agents/skills/
 ```
 
-之后在 dsh 会话里说「把 XX.pdf 整理成笔记存到语雀」即可自动触发。
+Windows 上等价于复制到 `C:\Users\<你的用户名>\.agents\skills\yuque-pdf-notes\`（含 `SKILL.md`）。
+
+### 使用
+
+在 dsh 会话（命令行或 web 界面）里直接说，例如：
+
+> 把 `E:\学习\langchain-02.pdf` 整理成笔记存到语雀
+
+模型会加载 skill 并自动执行：
+
+1. 用 pypdf 按页提取文本（保留标题层级、表格、代码块）
+2. 提取插图到 `images/`（跳过封面页与 15KB 以下的装饰小图）
+3. 组装 Markdown，在关键论述处插入图片引用
+4. 调 `yuque_list_toc` 看目录 → 目录不存在则 `yuque_create_dir` 创建 → `yuque_create_doc` 保存
+5. 校验返回的 `uploadedImages` 等于插入的图片数，缺图会重试而不是静默存纯文本
+
+### 标题与目录规则（skill 自动遵守）
+
+- **标题优先复用**：PDF 课件自带标题直接用，只去掉品牌词。例：「尚硅谷-02-模型的创建与调用.pdf」→ 标题「02-模型的创建与调用」；无标题的琐碎笔记才由模型自拟
+- **正文去品牌**：删除封面、页眉页脚、正文里的讲师/企业信息（如「讲师：尚硅谷 - 宋红康」），只保留知识内容
+- **目录按主题命名**：如上传 LangChain 1.2 课件 → 目录「langchain1.2」
+
+### 出错时
+
+- 图片上传失败：整次保存中止并报出失败引用与原因（fail-loud）。常见原因：图片引用路径写错、`GITHUB_TOKEN` 无写权限、`YUQUE_IMAGE_REPO` 指向不存在的仓库
+- 确认插件配置：`--dump-config` 可查看合成后的配置（token 以 `!!js` 表达式保留，不会打印出明文）
 
 ## 使用示例
 
