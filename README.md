@@ -30,7 +30,7 @@ yuque_list_toc（看现有分类）
 
 ## 安装
 
-两种方式：
+三种方式：
 
 **1. 安装到 profile（推荐，持久生效）**
 
@@ -42,7 +42,17 @@ dsh plugin --profile <name> add .
 
 > 注意：本地目录安装（`dsh plugin add .`）不触发 `prepare`，需先构建：`pnpm build`。
 
-**2. 临时 overlay（仓库内调试，不安装）**
+**2. 从 GitHub 安装（社区用户）**
+
+```sh
+dsh plugin --profile <name> add github:cchenbin042/yuque-notes-plugin
+```
+
+git 安装拉取的是源码而非构建产物，pnpm 会在安装时自动运行本插件的 `prepare` 脚本（`tsc` 构建出 `lib/`，故 `prepare` 脚本不可删）。pnpm ≥ 10 默认拒绝执行 git 依赖的构建脚本：首次 `add` 失败时，把 pnpm 打印的包键加入该 profile 的 `pnpm-workspace.yaml` 的 `allowBuilds`，再重新执行 `add`。该授权允许包代码在安装时于本机执行，建议锁定 commit（`github:cchenbin042/yuque-notes-plugin#<sha>`）后再授权。
+
+不想做构建授权时：可等 npm 发布后用 `dsh plugin --profile <name> add yuque-notes-plugin`，或 `pnpm pack` 后 `dsh plugin --profile <name> add ./yuque-notes-plugin-0.1.0.tgz`。
+
+**3. 临时 overlay（仓库内调试，不安装）**
 
 ```sh
 pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"
