@@ -13,6 +13,8 @@ export interface CreateNoteOptions {
 
 export interface CreateNoteDeps {
   attachments?: Pick<AttachmentStore, 'readImage'>
+  /** 图床上传器；未配置时正文里的图片引用会导致 fail-loud */
+  upload?: (image: ImageSource, signal?: AbortSignal) => Promise<string>
   cwd?: string
   signal?: AbortSignal
 }
@@ -27,11 +29,11 @@ export async function createNote(
   const { markdown, uploaded, failed } = await replaceImageRefs(options.body, {
     readAttachment: (id, signal) => readAttachmentImage(deps, id, signal),
     readFile: (path, signal) => readLocalImage(path, deps.cwd, signal),
-    upload: (image, signal) => client.uploadImage(image, signal).then(r => r.url),
+    upload: (image, signal) => uploadImage(deps, image, signal),
   }, deps.signal)
   if (failed.length > 0) {
     const refs = failed.map(ref => ref.raw).join(', ')
-    throw new Error(`yuque-notes: image upload failed for: ${refs}`)
+    throw new Error(`yuque-notes: image upload failed for: ${refs}${describeFailureReason(failed[0]?.error)}`)
   }
   const doc = await client.createDoc(repoId, {
     title: options.title,
@@ -68,6 +70,22 @@ async function attachDoc(
     }
     throw new Error('yuque-notes: doc created but failed to attach to toc; doc rolled back', { cause })
   }
+}
+
+async function uploadImage(
+  deps: CreateNoteDeps,
+  image: ImageSource,
+  signal?: AbortSignal,
+): Promise<string> {
+  if (deps.upload === undefined) {
+    throw new Error('yuque-notes: image hosting not configured (set config "imageHosting"), cannot upload image')
+  }
+  return deps.upload(image, signal)
+}
+
+/** 附上首个失败的原始原因，方便 agent 直接定位（如图床未配置）。 */
+function describeFailureReason(error: unknown): string {
+  return error instanceof Error && error.message !== '' ? ` (${error.message})` : ''
 }
 
 async function readAttachmentImage(

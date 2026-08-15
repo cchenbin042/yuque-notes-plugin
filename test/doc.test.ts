@@ -64,8 +64,8 @@ describe('createNote', () => {
     const client = {
       createDoc: vi.fn().mockResolvedValue({ id: 1, slug: 's', title: 'T', url: 'u' }),
       appendDocToToc: vi.fn().mockResolvedValue({ uuid: 'n1', title: 'T', slug: 's', parent_uuid: null, type: 'DOC' }),
-      uploadImage: vi.fn().mockResolvedValue({ url: 'https://cdn.yuque.com/abc.png' }),
     } as unknown as YuqueClient
+    const upload = vi.fn().mockResolvedValue('https://cdn.yuque.com/abc.png')
     const attachments = {
       readImage: vi.fn().mockResolvedValue({
         ref: { attachmentId: 'abc', mediaType: 'image/png' },
@@ -76,11 +76,33 @@ describe('createNote', () => {
       client,
       42,
       { title: 'T', body: '![a](attachment://abc)', namespace: 'alice/my-notes' },
-      { attachments },
+      { attachments, upload },
     )
     expect(result.uploadedImages).toBe(1)
+    expect(upload).toHaveBeenCalledTimes(1)
     const body = (client.createDoc as ReturnType<typeof vi.fn>).mock.calls[0]![1].body as string
     expect(body).toMatch(/^!\[a\]\(https:\/\/cdn/)
+  })
+
+  it('fails loud when images are referenced but no uploader is configured', async () => {
+    const client = {
+      createDoc: vi.fn(),
+      appendDocToToc: vi.fn(),
+    } as unknown as YuqueClient
+    await expect(createNote(
+      client,
+      42,
+      { title: 'T', body: '![a](attachment://abc)', namespace: 'alice/my-notes' },
+      {
+        attachments: {
+          readImage: vi.fn().mockResolvedValue({
+            ref: { attachmentId: 'abc', mediaType: 'image/png' },
+            data: new Uint8Array([1, 2]),
+          }),
+        },
+      },
+    )).rejects.toThrow(/image hosting not configured/)
+    expect(client.createDoc).not.toHaveBeenCalled()
   })
 
   it('fails loud on empty image references without creating the doc', async () => {

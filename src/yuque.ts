@@ -35,10 +35,6 @@ export interface DocCreateResult {
   url: string
 }
 
-export interface UploadResult {
-  url: string
-}
-
 /** 按语雀错误语义归一化：401/403 为鉴权类，404 为缺失类，其余透传状态码。 */
 export function normalizeError(status: number, message: string): YuqueError {
   const code = status === 401 || status === 403 ? 'unauthorized' : status === 404 ? 'not-found' : 'yuque-api'
@@ -133,26 +129,6 @@ export class YuqueClient {
 
   async deleteDoc(repoId: number, slug: string, signal?: AbortSignal): Promise<unknown> {
     return this.#request(`/api/v2/repos/${repoId}/docs/${slug}`, { method: 'DELETE', signal })
-  }
-
-  async uploadImage(
-    opts: { name: string; data: Uint8Array; mediaType: string },
-    signal?: AbortSignal,
-  ): Promise<UploadResult> {
-    const form = new FormData()
-    // TS 5.7 的 BlobPart 只接受 ArrayBuffer-backed 视图；运行时任意 Uint8Array 均合法
-    form.append('file', new Blob([opts.data as BlobPart], { type: opts.mediaType }), opts.name)
-    const response = await fetch(`${this.#baseUrl}/api/v2/uploads`, {
-      method: 'POST',
-      headers: { 'X-Auth-Token': this.#token, 'User-Agent': USER_AGENT },
-      body: form,
-      ...(signal === undefined ? {} : { signal }),
-    })
-    const payload = (await response.json().catch(() => ({}))) as { message?: unknown; data?: unknown }
-    if (!response.ok) {
-      throw normalizeError(response.status, typeof payload.message === 'string' ? payload.message : 'upload failed')
-    }
-    return payload.data as UploadResult
   }
 
   async #request<T>(

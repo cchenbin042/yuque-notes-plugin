@@ -4,6 +4,11 @@ export interface ImageRef {
   id: string
 }
 
+export interface FailedImageRef extends ImageRef {
+  /** 读取或上传阶段的原始错误；invalid 引用无 */
+  error?: unknown
+}
+
 export interface ImageRefResult {
   refs: ImageRef[]
   invalid: string[]
@@ -57,10 +62,10 @@ export async function replaceImageRefs(
   markdown: string,
   deps: ImageDeps,
   signal?: AbortSignal,
-): Promise<{ markdown: string; uploaded: ImageRef[]; failed: ImageRef[] }> {
+): Promise<{ markdown: string; uploaded: ImageRef[]; failed: FailedImageRef[] }> {
   const { refs, invalid } = parseImageRefs(markdown)
   const uploaded: ImageRef[] = []
-  const failed: ImageRef[] = [...invalid.map(raw => ({ kind: 'invalid' as const, raw, id: raw }))]
+  const failed: FailedImageRef[] = [...invalid.map(raw => ({ kind: 'invalid' as const, raw, id: raw }))]
   let result = markdown
   for (const ref of refs) {
     try {
@@ -70,8 +75,8 @@ export async function replaceImageRefs(
       const url = await deps.upload(source, signal)
       result = result.split(ref.raw).join(url)
       uploaded.push(ref)
-    } catch {
-      failed.push(ref)
+    } catch (error) {
+      failed.push({ ...ref, error })
     }
   }
   return { markdown: result, uploaded, failed }

@@ -91,17 +91,4 @@ describe('YuqueClient endpoints', () => {
     expect(init.method).toBe('DELETE')
   })
 
-  it('uploadImage posts multipart file field', async () => {
-    const fn = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ data: { url: 'https://cdn.yuque.com/x.png' } }) })
-    vi.stubGlobal('fetch', fn)
-    await client.uploadImage({ name: 'a.png', data: new Uint8Array([1, 2, 3]), mediaType: 'image/png' })
-    const [, init] = fn.mock.calls[0] as unknown as [string, RequestInit]
-    expect(fn.mock.calls[0]![0]).toBe('https://www.yuque.com/api/v2/uploads')
-    expect(init.method).toBe('POST')
-    expect(init.body).toBeInstanceOf(FormData)
-    const form = init.body as FormData
-    const file = form.get('file') as File
-    expect(file.name).toBe('a.png')
-    expect(file.type).toBe('image/png')
-  })
 })

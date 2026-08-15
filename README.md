@@ -69,6 +69,10 @@ pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"
       config:
         bookName: 我的笔记
         token: !!js process.env.YUQUE_TOKEN
+        imageHosting:
+          provider: github
+          repo: <owner>/<repo>          # 图片图床仓库（建议独立公开仓库）
+          token: !!js process.env.GITHUB_TOKEN
 ```
 
 | 配置项 | 默认值 | 说明 |
@@ -76,6 +80,10 @@ pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"
 | `token`（或环境变量 `YUQUE_TOKEN`） | 无（必填） | 语雀 API token；只注入请求头，绝不写入工具参数、返回或日志 |
 | `bookName` | `我的笔记` | 目标知识库名，不存在时自动创建；知识库默认私有创建 |
 | `baseUrl` | `https://www.yuque.com` | 语雀 API 基址，为私有化部署预留 |
+| `imageHosting.provider` | 无 | 图片图床类型，目前仅支持 `github` |
+| `imageHosting.repo` | 无（有图片时必填） | 图片仓库，`owner/repo` 形式 |
+| `imageHosting.token`（或环境变量 `GITHUB_TOKEN`） | 无（有图片时必填） | GitHub token（contents API 写权限） |
+| `imageHosting.branch` / `basePath` / `cdn` | `main` / `images` / `jsdelivr` | 目标分支 / 仓库内目录前缀 / 对外 URL 形式（`jsdelivr` 或 `raw`） |
 
 未配置 token 时插件加载即报错（fail-loud），不会带病运行。
 
@@ -89,13 +97,13 @@ pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"
 
 ## 图片引用格式
 
-`yuque_create_doc` 的正文支持两种图片引用，插件自动读取、上传到语雀并替换为返回的 URL：
+`yuque_create_doc` 的正文支持两种图片引用，插件自动读取、上传到配置的图床（`imageHosting`，GitHub 仓库）并替换为公网 CDN URL：
 
 - `![](attachment://<attachmentId>)` — 会话中已有的图片（attachment 服务）
 - 本地路径，如 `![](./screenshot.png)` — 绝对路径，或相对 agent 会话 cwd 的路径
 - `http(s)` 外链引用原样保留，不重新上传
 
-任一张图片读取或上传失败，整次保存都会中止并报出失败引用（fail-loud，不产生半成品文档）。
+任一张图片读取或上传失败，整次保存都会中止并报出失败引用与原始原因（fail-loud，不产生半成品文档）。正文含图片引用但未配置 `imageHosting` 时同样中止并提示配置。
 
 ## 非目标
 

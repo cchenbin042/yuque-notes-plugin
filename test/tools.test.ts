@@ -90,7 +90,6 @@ describe('registerTools', () => {
       getUser: vi.fn().mockResolvedValue({ login: 'alice', name: 'alice' }),
       listRepos: vi.fn().mockResolvedValue([{ id: 7, name: '我的笔记', slug: 'n', namespace: 'alice/n' }]),
       createDoc: vi.fn().mockResolvedValue({ id: 9, slug: 's', title: 'T', url: 'u' }),
-      uploadImage: vi.fn(),
     } as unknown as YuqueClient
     registerTools(ctx, { client, bookName: '我的笔记' })
     const tool = registered.find(t => t.name === 'yuque_create_doc') as Record<string, () => Promise<unknown>>

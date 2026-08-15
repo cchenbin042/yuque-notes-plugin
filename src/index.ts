@@ -1,6 +1,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type { AttachmentStore } from '@deepseek-ai/dsh-attachment'
 import { resolveConfig } from './config.ts'
+import { createGithubUploader } from './hosting.ts'
 import { registerTools } from './tools.ts'
 import { YuqueClient } from './yuque.ts'
 
@@ -13,5 +14,18 @@ export function apply(ctx: Context, config: Partial<import('./config.ts').YuqueC
   const resolved = resolveConfig(config)
   const client = new YuqueClient({ token: resolved.token, baseUrl: resolved.baseUrl })
   const attachments = ctx.get('attachments') as Pick<AttachmentStore, 'readImage'> | undefined
-  registerTools(ctx, { client, bookName: resolved.bookName, ...(attachments === undefined ? {} : { attachments }) })
+  const hosting = resolved.imageHosting
+  const upload = hosting === undefined ? undefined : createGithubUploader({
+    repo: hosting.repo,
+    token: hosting.token,
+    ...(hosting.branch === undefined ? {} : { branch: hosting.branch }),
+    ...(hosting.basePath === undefined ? {} : { basePath: hosting.basePath }),
+    ...(hosting.cdn === undefined ? {} : { cdn: hosting.cdn }),
+  })
+  registerTools(ctx, {
+    client,
+    bookName: resolved.bookName,
+    ...(attachments === undefined ? {} : { attachments }),
+    ...(upload === undefined ? {} : { upload }),
+  })
 }

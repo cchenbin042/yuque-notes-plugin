@@ -4,12 +4,14 @@ import { defineTool, type JsonValue } from '@deepseek-ai/dsh-tools'
 import { ensureBook } from './book.ts'
 import { createNote } from './doc.ts'
 import { buildTocTree, renderTocTree, type TocNode } from './toc.ts'
+import type { ImageSource } from './images.ts'
 import type { RepoInfo, YuqueClient } from './yuque.ts'
 
 export interface ToolDeps {
   client: YuqueClient
   bookName: string
   attachments?: Pick<AttachmentStore, 'readImage'>
+  upload?: (image: ImageSource, signal?: AbortSignal) => Promise<string>
 }
 
 export function registerTools(ctx: Context, deps: ToolDeps): void {
@@ -116,6 +118,7 @@ export function registerTools(ctx: Context, deps: ToolDeps): void {
         ...(args.slug === undefined ? {} : { slug: args.slug }),
       }, {
         ...(deps.attachments === undefined ? {} : { attachments: deps.attachments }),
+        ...(deps.upload === undefined ? {} : { upload: deps.upload }),
         ...(cwd === undefined ? {} : { cwd }),
         signal: exec.signal,
       })
