@@ -6,5 +6,5 @@
         token: !!js process.env.YUQUE_TOKEN
         imageHosting:
           provider: github
-          repo: cchenbin042/yuque-notes-images
+          repo: !!js (process.env.YUQUE_IMAGE_REPO || 'cchenbin042/yuque-notes-images')
           token: !!js process.env.GITHUB_TOKEN

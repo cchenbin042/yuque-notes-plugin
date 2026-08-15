@@ -71,7 +71,9 @@ pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"
         token: !!js process.env.YUQUE_TOKEN
         imageHosting:
           provider: github
-          repo: <owner>/<repo>          # 图片图床仓库（建议独立公开仓库）
+          # 图片图床仓库（建议独立公开仓库）；优先读环境变量 YUQUE_IMAGE_REPO，
+          # 未设置时回退到示例默认值——他人使用时请设环境变量指向自己的仓库
+          repo: !!js (process.env.YUQUE_IMAGE_REPO || '<owner>/<repo>')
           token: !!js process.env.GITHUB_TOKEN
 ```
 
@@ -81,7 +83,7 @@ pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"
 | `bookName` | `我的笔记` | 目标知识库名，不存在时自动创建；知识库默认私有创建 |
 | `baseUrl` | `https://www.yuque.com` | 语雀 API 基址，为私有化部署预留 |
 | `imageHosting.provider` | 无 | 图片图床类型，目前仅支持 `github` |
-| `imageHosting.repo` | 无（有图片时必填） | 图片仓库，`owner/repo` 形式 |
+| `imageHosting.repo`（或环境变量 `YUQUE_IMAGE_REPO`） | 无（有图片时必填） | 图片仓库，`owner/repo` 形式；多人使用时须各自设置环境变量指向自己的仓库 |
 | `imageHosting.token`（或环境变量 `GITHUB_TOKEN`） | 无（有图片时必填） | GitHub token（contents API 写权限） |
 | `imageHosting.branch` / `basePath` / `cdn` | `main` / `images` / `jsdelivr` | 目标分支 / 仓库内目录前缀 / 对外 URL 形式（`jsdelivr` 或 `raw`） |
 
