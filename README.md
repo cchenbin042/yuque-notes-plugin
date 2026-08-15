@@ -89,6 +89,19 @@ pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"
 
 未配置 token 时插件加载即报错（fail-loud），不会带病运行。
 
+## 内置 skill：yuque-pdf-notes
+
+仓库自带 `yuque-pdf-notes` skill（`.dsh/skills/yuque-pdf-notes/SKILL.md`），把「PDF 整理成笔记存到语雀」的工作流固化：pypdf 提取文本与插图 → 组装含图 Markdown → 走 `yuque_list_toc` / `yuque_create_dir` / `yuque_create_doc` 保存，并强制校验图片全部上传成功。
+
+安装到本机（dsh 从 `~/.agents/skills/` 发现）：
+
+```sh
+mkdir -p ~/.agents/skills
+cp -r .dsh/skills/yuque-pdf-notes ~/.agents/skills/
+```
+
+之后在 dsh 会话里说「把 XX.pdf 整理成笔记存到语雀」即可自动触发。
+
 ## 使用示例
 
 对话指令：
