@@ -17,7 +17,9 @@ pnpm typecheck                           # tsc --noEmit（含 test/）
 pnpm build                               # tsc -p tsconfig.build.json → lib/
 ```
 
-- 真实运行需要 `YUQUE_TOKEN` 环境变量（`cordis.patch.yml` 注入配置：`bookName` 默认「我的笔记」，token 从 env 读取）。未配 token 插件照常加载，调用语雀工具时才抛错（fail-loud 移至调用时）。
+- 真实运行需要 `YUQUE_TOKEN`（`cordis.patch.yml` 只注入凭据引用名 `tokenEnv: YUQUE_TOKEN`，值由 `src/credentials.ts` 的 `resolveCredential` 在**每次工具调用时**解析：凭据 seam（web 设置页 / `$DSH_HOME/.credentials.yaml`）优先，缺失时回退启动环境读取；未配置时抛出自助配置指引，不阻塞启动）。图片图床同构（`tokenEnv: GITHUB_TOKEN`）。
+- 本地目录安装（`dsh plugin add ./yuque-notes-plugin`）不触发 `prepare`，需先 `pnpm build`。
+- 仓库内调试不安装：`pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"`。
 - 本地目录安装（`dsh plugin add ./yuque-notes-plugin`）不触发 `prepare`，需先 `pnpm build`。
 - 仓库内调试不安装：`pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"`。
 
@@ -26,7 +28,7 @@ pnpm build                               # tsc -p tsconfig.build.json → lib/
 调用链：`src/index.ts`（cordis 入口）→ `src/tools.ts`（工具定义/注册）→ `src/book.ts` + `src/doc.ts`（编排）→ `src/yuque.ts`（API 客户端）+ `src/toc.ts`（目录树）+ `src/images.ts`（图片管线）。`test/` 与 `src/` 一一对应（`yuque-endpoints.test.ts` 覆盖客户端，`tools.test.ts` 覆盖工具注册）。
 
 - **入口（index.ts）**：导出 `name`、`inject: ['tools']`、`apply(ctx, config)`。`attachments` 服务是**可选的**——`ctx.get('attachments')` 取不到时工具仍注册，只是 `attachment://` 图片引用会抛错。
-- **客户端（yuque.ts）**：`YuqueClient` 持有私有 token（`#token`），只注入 `X-Auth-Token` 请求头。所有方法接受可选 `AbortSignal` 随 agent 取消。`#request` 对 429/5xx 指数退避重试（`2^n * 250ms`，最多 3 次）；错误经 `normalizeError` 归一化为 `unauthorized`（401/403）、`not-found`（404）、`yuque-api`（其余）。TOC 追加（PUT）返回完整 toc 数组，用 `matchTocNode` 按（type, title, parent_uuid ?? ''）定位新节点。
+- **客户端（yuque.ts）**：`YuqueClient` 持有 token 提供函数（`#resolveToken`，每次请求前 await 解析），只注入 `X-Auth-Token` 请求头。所有方法接受可选 `AbortSignal` 随 agent 取消。`#request` 对 429/5xx 指数退避重试（`2^n * 250ms`，最多 3 次）；错误经 `normalizeError` 归一化为 `unauthorized`（401/403）、`not-found`（404）、`yuque-api`（其余）。TOC 追加（PUT）返回完整 toc 数组，用 `matchTocNode` 按（type, title, parent_uuid ?? ''）定位新节点。
 - **编排**：`ensureBook` 按 name 精确匹配复用知识库，缺失则创建，422 缺 slug 时带 `makeSlug` 生成的 ASCII slug 重试一次。`createNote` = 图片管线 → createDoc → 挂 TOC。
 - **fail-loud**：任一张图片读取/上传失败 → 整次保存中止（不产生半成品文档）；文档创建成功但挂 TOC 失败 → `deleteDoc` 回滚（回滚也失败则抛错并保留 URL）；工具不吞错误。
 

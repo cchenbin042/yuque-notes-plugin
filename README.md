@@ -74,26 +74,25 @@ pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"
       name: yuque-notes-plugin
       config:
         bookName: 我的笔记
-        token: !!js process.env.YUQUE_TOKEN
+        tokenEnv: YUQUE_TOKEN
         imageHosting:
           provider: github
-          # 图片图床仓库（建议独立公开仓库）；优先读环境变量 YUQUE_IMAGE_REPO，
-          # 未设置时回退到示例默认值——他人使用时请设环境变量指向自己的仓库
-          repo: !!js (process.env.YUQUE_IMAGE_REPO || '<owner>/<repo>')
-          token: !!js process.env.GITHUB_TOKEN
+          # 图片图床仓库（建议独立公开仓库）
+          repo: '<owner>/<repo>'
+          tokenEnv: GITHUB_TOKEN
 ```
 
 | 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
-| `token`（或环境变量 `YUQUE_TOKEN`） | 无（调用时必填） | 语雀 API token；只注入请求头，绝不写入工具参数、返回或日志。未配置时插件照常加载，调用语雀工具时才返回错误提示 |
+| `tokenEnv`（凭据引用名） | `YUQUE_TOKEN` | 语雀 API token 的凭据引用名；配置只携带引用名，值由 harness 凭据服务解析。token 只注入请求头，绝不写入工具参数、返回或日志 |
 | `bookName` | `我的笔记` | 目标知识库名，不存在时自动创建；知识库默认私有创建 |
 | `baseUrl` | `https://www.yuque.com` | 语雀 API 基址，为私有化部署预留 |
 | `imageHosting.provider` | 无 | 图片图床类型，目前仅支持 `github` |
-| `imageHosting.repo`（或环境变量 `YUQUE_IMAGE_REPO`） | 无（有图片时必填） | 图片仓库，`owner/repo` 形式；多人使用时须各自设置环境变量指向自己的仓库 |
-| `imageHosting.token`（或环境变量 `GITHUB_TOKEN`） | 无（有图片时必填） | GitHub token（contents API 写权限） |
+| `imageHosting.repo` | 无（有图片时必填） | 图片仓库，`owner/repo` 形式 |
+| `imageHosting.tokenEnv`（凭据引用名） | `GITHUB_TOKEN` | GitHub token（contents API 写权限）的凭据引用名 |
 | `imageHosting.branch` / `basePath` / `cdn` | `main` / `images` / `jsdelivr` | 目标分支 / 仓库内目录前缀 / 对外 URL 形式（`jsdelivr` 或 `raw`） |
 
-未配置 token 时插件照常加载，只有调用语雀工具时才返回错误提示（fail-loud 移至调用时），不影响 Harness 启动与其他插件使用。
+**token 的解析时机与位置**：token 在**每次工具调用/上传时**按操作解析（惰性加载），不再在插件加载时冻结。解析优先走 harness 凭据服务（web 设置页或 `$DSH_HOME/.credentials.yaml` 可写），其内部按「进程环境 → `.credentials.yaml` → 调用目录 `.env` → `$DSH_HOME/.env`」的优先级取首个非空值；凭据服务缺失时回退到启动环境读取。**改完凭据下一次调用立即生效，无需重启 Harness**；未配置时插件照常加载，调用语雀工具时才返回带配置指引的错误（fail-loud 移至调用时），不影响启动与其他插件使用。
 
 ## 内置 skill：yuque-pdf-notes
 
@@ -146,8 +145,9 @@ Windows 上等价于复制到 `C:\Users\<你的用户名>\.agents\skills\yuque-p
 
 ### 出错时
 
-- 图片上传失败：整次保存中止并报出失败引用与原因（fail-loud）。常见原因：图片引用路径写错、`GITHUB_TOKEN` 无写权限、`YUQUE_IMAGE_REPO` 指向不存在的仓库
-- 确认插件配置：`--dump-config` 可查看合成后的配置（token 以 `!!js` 表达式保留，不会打印出明文）
+- 图片上传失败：整次保存中止并报出失败引用与原因（fail-loud）。常见原因：图片引用路径写错、`GITHUB_TOKEN` 无写权限、图片仓库不存在
+- 确认插件配置：`--dump-config` 可查看合成后的配置（token 只以引用名出现，不会打印出明文）
+- 提示「未配置 token」：将 `YUQUE_TOKEN` / `GITHUB_TOKEN` 写入凭据存储（web 设置页或 `$DSH_HOME/.credentials.yaml`），或在启动 dsh 的环境中 `export`；无需重启，下一次调用即生效
 
 ## 使用示例
 
