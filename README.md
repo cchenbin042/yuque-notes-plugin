@@ -56,7 +56,7 @@ dsh plugin --profile <name> add github:cchenbin042/yuque-notes-plugin
 
 git 安装拉取的是源码而非构建产物，pnpm 会在安装时自动运行本插件的 `prepare` 脚本（`tsc` 构建出 `lib/`，故 `prepare` 脚本不可删）。pnpm ≥ 10 默认拒绝执行 git 依赖的构建脚本：首次 `add` 失败时，把 pnpm 打印的包键加入该 profile 的 `pnpm-workspace.yaml` 的 `allowBuilds`，再重新执行 `add`。该授权允许包代码在安装时于本机执行，建议锁定 commit（`github:cchenbin042/yuque-notes-plugin#<sha>`）后再授权。
 
-或 `pnpm pack` 后 `dsh plugin --profile <name> add ./yuque-notes-plugin-0.1.2.tgz`。
+或 `pnpm pack` 后 `dsh plugin --profile <name> add ./yuque-notes-plugin-0.2.0.tgz`。
 
 **4. 临时 overlay（仓库内调试，不安装）**
 
