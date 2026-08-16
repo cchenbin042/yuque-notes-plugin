@@ -1,0 +1,27 @@
+name: publish
+
+on:
+  workflow_dispatch:
+
+# OIDC 可信发布：npm 侧 Trusted Publisher 绑定本仓库的 publish.yml（大小写敏感），
+# GitHub Actions 用 id-token 换取 npm 的短时凭证，无需任何 NPM_TOKEN 密钥。
+# 用法：gh workflow run publish.yml（发布 package.json 当前版本）
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # 不要设置 registry-url：空 NODE_AUTH_TOKEN 会让 npm 跳过 OIDC 直接报 ENEEDAUTH
+          node-version: 24
+      - name: Upgrade npm (trusted publishing needs >= 11.5.1)
+        run: npm install -g npm@latest
+      - name: Build
+        run: npm run build
+      - name: Publish to npm
+        run: npm publish --provenance --ignore-scripts
