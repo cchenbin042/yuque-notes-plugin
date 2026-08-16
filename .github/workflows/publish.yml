@@ -21,7 +21,11 @@ jobs:
           node-version: 24
       - name: Upgrade npm (trusted publishing needs >= 11.5.1)
         run: npm install -g npm@latest
+      - name: Install dependencies
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
       - name: Build
-        run: npm run build
+        run: pnpm build
       - name: Publish to npm
         run: npm publish --provenance --ignore-scripts
