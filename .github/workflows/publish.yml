@@ -27,5 +27,14 @@ jobs:
           pnpm install --frozen-lockfile
       - name: Build
         run: pnpm build
+      - name: Diagnose OIDC environment
+        run: |
+          node -v
+          npm -v
+          echo "ID_TOKEN_URL set: ${ACTIONS_ID_TOKEN_REQUEST_URL:+yes}"
+          echo "ID_TOKEN_TOKEN set: ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+yes}"
+          echo "NODE_AUTH_TOKEN set: ${NODE_AUTH_TOKEN:+yes}"
+          cat ~/.npmrc 2>/dev/null || echo "no ~/.npmrc"
       - name: Publish to npm
-        run: npm publish --provenance --ignore-scripts
+        # env -u 彻底移除 NODE_AUTH_TOKEN（npm 以变量存在与否判断是否走 OIDC）
+        run: env -u NODE_AUTH_TOKEN npm publish --provenance --ignore-scripts
