@@ -23,7 +23,7 @@ describe('YuqueClient request core', () => {
     expect(url).toBe('https://www.yuque.com/api/v2/user')
     const headers = init.headers as Record<string, string>
     expect(headers['X-Auth-Token']).toBe('tk_test')
-    expect(headers['User-Agent']).toBe('yuque-notes-plugin/0.1.1')
+    expect(headers['User-Agent']).toBe('yuque-notes-plugin/0.1.2')
     expect(headers['Content-Type']).toBe('application/json')
   })
 

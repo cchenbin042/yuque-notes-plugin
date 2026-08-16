@@ -1,4 +1,4 @@
-const USER_AGENT = 'yuque-notes-plugin/0.1.1'
+const USER_AGENT = 'yuque-notes-plugin/0.1.2'
 const MAX_ATTEMPTS = 3
 
 export class YuqueError extends Error {
