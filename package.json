@@ -1,6 +1,6 @@
 {
   "name": "yuque-notes-plugin",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Save messy notes (text + images) to a Yuque knowledge base, classified by the model.",
   "keywords": ["dsh-plugin", "yuque", "notes", "knowledge-base"],
   "type": "module",
