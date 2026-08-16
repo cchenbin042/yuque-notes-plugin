@@ -36,5 +36,6 @@ jobs:
           echo "NODE_AUTH_TOKEN set: ${NODE_AUTH_TOKEN:+yes}"
           cat ~/.npmrc 2>/dev/null || echo "no ~/.npmrc"
       - name: Publish to npm
-        # env -u 彻底移除 NODE_AUTH_TOKEN（npm 以变量存在与否判断是否走 OIDC）
-        run: env -u NODE_AUTH_TOKEN npm publish --provenance --ignore-scripts
+        # env -u 彻底移除 NODE_AUTH_TOKEN（npm 以变量存在与否判断是否走 OIDC）；
+        # verbose 日志打印 OIDC token exchange 的真实响应（成功则正常发布）
+        run: env -u NODE_AUTH_TOKEN npm publish --loglevel=verbose --provenance --ignore-scripts
