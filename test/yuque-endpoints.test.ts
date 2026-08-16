@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { YuqueClient } from '../src/yuque.ts'
 
-const client = new YuqueClient({ token: 'tk_test', baseUrl: 'https://www.yuque.com' })
+const client = new YuqueClient({ token: async () => 'tk_test', baseUrl: 'https://www.yuque.com' })
 afterEach(() => vi.unstubAllGlobals())
 
 function stubFetch(data: unknown): ReturnType<typeof vi.fn> {
@@ -91,11 +91,27 @@ describe('YuqueClient endpoints', () => {
     expect(init.method).toBe('DELETE')
   })
 
-  it('fails loudly without touching the network when token is empty', async () => {
+  it('fails loudly without touching the network when token resolution throws', async () => {
     const fn = stubFetch({})
-    const noToken = new YuqueClient({ token: '', baseUrl: 'https://www.yuque.com' })
+    const noToken = new YuqueClient({
+      token: async () => {
+        throw new Error('yuque-notes: 未配置语雀 token。请将 YUQUE_TOKEN 写入凭据存储...')
+      },
+      baseUrl: 'https://www.yuque.com',
+    })
     await expect(noToken.getUser()).rejects.toThrow(/YUQUE_TOKEN/)
     expect(fn).not.toHaveBeenCalled()
+  })
+
+  it('resolves the token provider on every request', async () => {
+    const fn = stubFetch({ id: 1, name: 'n', slug: 's', namespace: 'alice/s' })
+    const token = vi.fn().mockResolvedValue('tk_lazy')
+    const lazy = new YuqueClient({ token, baseUrl: 'https://www.yuque.com' })
+    await lazy.listRepos('alice')
+    await lazy.listRepos('alice')
+    expect(token).toHaveBeenCalledTimes(2)
+    const [, init] = fn.mock.calls[0] as unknown as [string, RequestInit]
+    expect((init.headers as Record<string, string>)['X-Auth-Token']).toBe('tk_lazy')
   })
 
 })

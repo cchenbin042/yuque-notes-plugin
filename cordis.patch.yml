@@ -1,10 +1,12 @@
+# 配置只携带凭据引用名（环境变量名），不携带机密本身；
+# token 值由 harness 凭据服务在每次工具调用时解析（web 设置页或 $DSH_HOME/.credentials.yaml）。
 - insert:
     - id: yuque-notes
       name: yuque-notes-plugin
       config:
         bookName: 我的笔记
-        token: !!js process.env.YUQUE_TOKEN
+        tokenEnv: YUQUE_TOKEN
         imageHosting:
           provider: github
-          repo: !!js (process.env.YUQUE_IMAGE_REPO || 'cchenbin042/yuque-notes-images')
-          token: !!js process.env.GITHUB_TOKEN
+          repo: cchenbin042/yuque-notes-images
+          tokenEnv: GITHUB_TOKEN

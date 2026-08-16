@@ -1,4 +1,4 @@
-const USER_AGENT = 'yuque-notes-plugin/0.1.2'
+const USER_AGENT = 'yuque-notes-plugin/0.2.0'
 const MAX_ATTEMPTS = 3
 
 export class YuqueError extends Error {
@@ -42,11 +42,11 @@ export function normalizeError(status: number, message: string): YuqueError {
 }
 
 export class YuqueClient {
-  readonly #token: string
+  readonly #resolveToken: () => Promise<string>
   readonly #baseUrl: string
 
-  constructor(config: { token: string; baseUrl: string }) {
-    this.#token = config.token
+  constructor(config: { token: () => Promise<string>; baseUrl: string }) {
+    this.#resolveToken = config.token
     this.#baseUrl = config.baseUrl.replace(/\/+$/, '')
   }
 
@@ -154,14 +154,10 @@ export class YuqueClient {
     path: string,
     init: { method?: string; body?: unknown; signal?: AbortSignal | undefined },
   ): Promise<T> {
-    if (this.#token === '') {
-      throw new Error(
-        'yuque-notes: 未配置 YUQUE_TOKEN 环境变量（语雀 API token）。这是运行环境配置问题，你无法自行修复——'
-        + '请不要查找或修改任何配置文件，停止调用语雀工具，直接告知用户：需要设置 YUQUE_TOKEN 环境变量后才能保存到语雀。',
-      )
-    }
+    // 每次请求前按操作解析 token：未配置时 resolveCredential 抛出自助配置指引。
+    const token = await this.#resolveToken()
     const headers: Record<string, string> = {
-      'X-Auth-Token': this.#token,
+      'X-Auth-Token': token,
       'User-Agent': USER_AGENT,
       'Content-Type': 'application/json',
     }

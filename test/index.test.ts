@@ -9,15 +9,15 @@ describe('plugin entry', () => {
   it('registers tools when config is valid', () => {
     const register = vi.fn()
     const ctx = {
-      config: { token: 'tk', bookName: '我的笔记', baseUrl: 'https://www.yuque.com' },
+      config: { tokenEnv: 'YUQUE_TOKEN', bookName: '我的笔记', baseUrl: 'https://www.yuque.com' },
       tools: { register },
       get: () => undefined,
     } as never
-    apply(ctx as never, { token: 'tk', bookName: '我的笔记', baseUrl: 'https://www.yuque.com' } as never)
+    apply(ctx as never, { tokenEnv: 'YUQUE_TOKEN', bookName: '我的笔记', baseUrl: 'https://www.yuque.com' } as never)
     expect(register).toHaveBeenCalledTimes(3)
   })
 
-  it('loads without token (fail-loud moves to call time)', () => {
+  it('loads without tokenEnv (lazy resolution moves to call time)', () => {
     const register = vi.fn()
     const ctx = {
       config: {},
@@ -31,11 +31,11 @@ describe('plugin entry', () => {
   it('does not block when attachment service is absent', () => {
     const register = vi.fn()
     const ctx = {
-      config: { token: 'tk' },
+      config: { tokenEnv: 'YUQUE_TOKEN' },
       tools: { register },
       get: () => undefined,
     } as never
-    apply(ctx as never, { token: 'tk' } as never)
+    apply(ctx as never, { tokenEnv: 'YUQUE_TOKEN' } as never)
     expect(register).toHaveBeenCalledTimes(3)
   })
 })

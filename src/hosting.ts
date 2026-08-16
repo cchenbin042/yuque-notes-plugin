@@ -4,8 +4,8 @@ import type { ImageSource } from './images.ts'
 export interface GitHubHostingOptions {
   /** "owner/repo" 形式的目标仓库 */
   repo: string
-  /** GitHub token（contents API 写入用，建议 env 注入） */
-  token: string
+  /** token 提供函数（凭据解析）；每次上传前调用 */
+  token: () => Promise<string>
   /** 目标分支，默认 main */
   branch?: string
   /** 仓库内图片目录前缀，默认 images */
@@ -43,10 +43,12 @@ export function createGithubUploader(
       message: `chore: upload image ${name} by yuque-notes-plugin`,
       content: Buffer.from(image.data).toString('base64'),
     })
+    // 每次上传前按操作解析 token
+    const token = await options.token()
     const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
       method: 'PUT',
       headers: {
-        Authorization: `Bearer ${options.token}`,
+        Authorization: `Bearer ${token}`,
         'User-Agent': 'yuque-notes-plugin',
         'Content-Type': 'application/json',
       },

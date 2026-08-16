@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { YuqueClient } from '../src/yuque.ts'
 
-const client = new YuqueClient({ token: 'tk_test', baseUrl: 'https://www.yuque.com' })
+const client = new YuqueClient({ token: async () => 'tk_test', baseUrl: 'https://www.yuque.com' })
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -23,7 +23,7 @@ describe('YuqueClient request core', () => {
     expect(url).toBe('https://www.yuque.com/api/v2/user')
     const headers = init.headers as Record<string, string>
     expect(headers['X-Auth-Token']).toBe('tk_test')
-    expect(headers['User-Agent']).toBe('yuque-notes-plugin/0.1.2')
+    expect(headers['User-Agent']).toBe('yuque-notes-plugin/0.2.0')
     expect(headers['Content-Type']).toBe('application/json')
   })
 
@@ -57,7 +57,13 @@ describe('YuqueClient request core', () => {
     const controller = new AbortController()
     const fn = vi.fn().mockImplementation((_url: string, init: RequestInit) => {
       return new Promise((_resolve, reject) => {
-        init.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))
+        const signal = init.signal
+        // 与真实 fetch 一致：signal 已 aborted 时立即失败，未 abort 才挂起等事件
+        if (signal?.aborted === true) {
+          reject(new DOMException('aborted', 'AbortError'))
+        } else {
+          signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))
+        }
       })
     })
     vi.stubGlobal('fetch', fn)

@@ -1,6 +1,6 @@
 {
   "name": "yuque-notes-plugin",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Save messy notes (text + images) to a Yuque knowledge base, classified by the model.",
   "keywords": ["dsh-plugin", "yuque", "notes", "knowledge-base"],
   "type": "module",
@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@deepseek-ai/dsh-attachment": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-credentials": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-launch-environment": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-tools": "^0.1.0-rc.6"
   },
   "peerDependencies": {

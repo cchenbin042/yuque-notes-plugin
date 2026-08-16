@@ -14,7 +14,7 @@ const image = { data: new Uint8Array([1, 2, 3]), mediaType: 'image/png', name: '
 describe('createGithubUploader', () => {
   it('uploads to the contents API and returns a jsdelivr url by default', async () => {
     const fn = stubFetch({})
-    const upload = createGithubUploader({ repo: 'alice/img', token: 'tk' })
+    const upload = createGithubUploader({ repo: 'alice/img', token: async () => 'tk' })
     const url = await upload(image)
     const [target, init] = fn.mock.calls[0] as unknown as [string, RequestInit]
     expect(target).toMatch(/^https:\/\/api\.github\.com\/repos\/alice\/img\/contents\/images\/[0-9a-f]{16}\.png$/)
@@ -31,7 +31,7 @@ describe('createGithubUploader', () => {
 
   it('uses branch, basePath and raw cdn when configured', async () => {
     const fn = stubFetch({})
-    const upload = createGithubUploader({ repo: 'alice/img', token: 'tk', branch: 'dev', basePath: 'pdfs', cdn: 'raw' })
+    const upload = createGithubUploader({ repo: 'alice/img', token: async () => 'tk', branch: 'dev', basePath: 'pdfs', cdn: 'raw' })
     const url = await upload(image)
     const [target] = fn.mock.calls[0] as unknown as [string, RequestInit]
     expect(target).toMatch(/\/contents\/pdfs\/[0-9a-f]{16}\.png$/)
@@ -41,11 +41,20 @@ describe('createGithubUploader', () => {
 
   it('throws fail-loud on github error responses', async () => {
     stubFetch({ message: 'Bad credentials' }, false, 401)
-    const upload = createGithubUploader({ repo: 'alice/img', token: 'bad' })
+    const upload = createGithubUploader({ repo: 'alice/img', token: async () => 'bad' })
     await expect(upload(image)).rejects.toThrow(/github upload failed \(401\): Bad credentials/)
   })
 
   it('throws on invalid repo format at creation time', () => {
-    expect(() => createGithubUploader({ repo: 'noslash', token: 'tk' })).toThrow(/expected "owner\/repo"/)
+    expect(() => createGithubUploader({ repo: 'noslash', token: async () => 'tk' })).toThrow(/expected "owner\/repo"/)
+  })
+
+  it('resolves token per upload and fails loud without network when resolution throws', async () => {
+    const fn = stubFetch({})
+    const token = vi.fn().mockRejectedValue(new Error('yuque-notes: 未配置图床 token'))
+    const upload = createGithubUploader({ repo: 'alice/img', token })
+    await expect(upload(image)).rejects.toThrow(/未配置图床 token/)
+    expect(token).toHaveBeenCalledTimes(1)
+    expect(fn).not.toHaveBeenCalled()
   })
 })
