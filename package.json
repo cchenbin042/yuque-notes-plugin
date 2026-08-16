@@ -5,6 +5,7 @@
   "keywords": ["dsh-plugin", "yuque", "notes", "knowledge-base"],
   "type": "module",
   "license": "MIT",
+  "packageManager": "pnpm@11.21.0",
   "repository": { "type": "git", "url": "https://github.com/cchenbin042/yuque-notes-plugin.git" },
   "files": ["lib", "cordis.patch.yml"],
   "main": "lib/index.js",
