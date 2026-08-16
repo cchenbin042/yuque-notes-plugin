@@ -91,4 +91,11 @@ describe('YuqueClient endpoints', () => {
     expect(init.method).toBe('DELETE')
   })
 
+  it('fails loudly without touching the network when token is empty', async () => {
+    const fn = stubFetch({})
+    const noToken = new YuqueClient({ token: '', baseUrl: 'https://www.yuque.com' })
+    await expect(noToken.getUser()).rejects.toThrow(/YUQUE_TOKEN not configured/)
+    expect(fn).not.toHaveBeenCalled()
+  })
+
 })

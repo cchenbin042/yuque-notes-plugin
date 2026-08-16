@@ -17,7 +17,7 @@ pnpm typecheck                           # tsc --noEmit（含 test/）
 pnpm build                               # tsc -p tsconfig.build.json → lib/
 ```
 
-- 真实运行需要 `YUQUE_TOKEN` 环境变量（`cordis.patch.yml` 注入配置：`bookName` 默认「我的笔记」，token 从 env 读取）。未配 token 插件加载即抛错。
+- 真实运行需要 `YUQUE_TOKEN` 环境变量（`cordis.patch.yml` 注入配置：`bookName` 默认「我的笔记」，token 从 env 读取）。未配 token 插件照常加载，调用语雀工具时才抛错（fail-loud 移至调用时）。
 - 本地目录安装（`dsh plugin add ./yuque-notes-plugin`）不触发 `prepare`，需先 `pnpm build`。
 - 仓库内调试不安装：`pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"`。
 

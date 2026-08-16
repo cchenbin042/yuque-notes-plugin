@@ -1,4 +1,4 @@
-const USER_AGENT = 'yuque-notes-plugin/0.1.0'
+const USER_AGENT = 'yuque-notes-plugin/0.1.1'
 const MAX_ATTEMPTS = 3
 
 export class YuqueError extends Error {
@@ -154,6 +154,9 @@ export class YuqueClient {
     path: string,
     init: { method?: string; body?: unknown; signal?: AbortSignal | undefined },
   ): Promise<T> {
+    if (this.#token === '') {
+      throw new Error('yuque-notes: YUQUE_TOKEN not configured (set env YUQUE_TOKEN or cordis.yml config token)')
+    }
     const headers: Record<string, string> = {
       'X-Auth-Token': this.#token,
       'User-Agent': USER_AGENT,

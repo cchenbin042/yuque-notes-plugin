@@ -13,12 +13,12 @@ describe('resolveConfig', () => {
     expect(config.baseUrl).toBe('https://yuque.example.com')
   })
 
-  it('throws when token is missing', () => {
-    expect(() => resolveConfig({})).toThrow(/missing required config "token"/)
+  it('allows missing token (fail-loud moves to call time)', () => {
+    expect(resolveConfig({}).token).toBe('')
   })
 
-  it('throws when token is empty', () => {
-    expect(() => resolveConfig({ token: '  ' })).toThrow(/missing required config "token"/)
+  it('allows empty token', () => {
+    expect(resolveConfig({ token: '  ' }).token).toBe('')
   })
 
   it('exposes DEFAULT_CONFIG', () => {

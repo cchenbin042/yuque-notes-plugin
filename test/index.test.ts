@@ -17,13 +17,15 @@ describe('plugin entry', () => {
     expect(register).toHaveBeenCalledTimes(3)
   })
 
-  it('fails loud when token is missing', () => {
+  it('loads without token (fail-loud moves to call time)', () => {
+    const register = vi.fn()
     const ctx = {
       config: {},
-      tools: { register: vi.fn() },
+      tools: { register },
       get: () => undefined,
     } as never
-    expect(() => apply(ctx as never, {} as never)).toThrow(/missing required config "token"/)
+    apply(ctx as never, {} as never)
+    expect(register).toHaveBeenCalledTimes(3)
   })
 
   it('does not block when attachment service is absent', () => {
