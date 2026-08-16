@@ -17,7 +17,7 @@ export interface ToolDeps {
 export function registerTools(ctx: Context, deps: ToolDeps): void {
   ctx.tools.register(defineTool({
     name: 'yuque_list_toc',
-    description: '列出语雀笔记知识库的目录树，用于决定新笔记的分类位置。',
+    description: '列出语雀笔记知识库的目录树，用于决定新笔记的分类位置。前置条件：已配置 YUQUE_TOKEN 环境变量；未配置时不要调用本工具，直接告知用户设置 YUQUE_TOKEN。',
     parameters: {},
     output: {
       schema: {
@@ -48,7 +48,7 @@ export function registerTools(ctx: Context, deps: ToolDeps): void {
 
   ctx.tools.register(defineTool({
     name: 'yuque_create_dir',
-    description: '在语雀笔记知识库中创建目录（分类）节点；同名同父已存在时直接返回既有节点。',
+    description: '在语雀笔记知识库中创建目录（分类）节点；同名同父已存在时直接返回既有节点。前置条件：已配置 YUQUE_TOKEN 环境变量；未配置时不要调用本工具，直接告知用户设置 YUQUE_TOKEN。',
     parameters: {
       title: { type: 'string', required: true, description: '目录标题，如「技术/前端」的子目录标题' },
       parentUuid: { type: 'string', description: '父目录节点 uuid；省略则创建在根层' },
@@ -82,7 +82,7 @@ export function registerTools(ctx: Context, deps: ToolDeps): void {
 
   ctx.tools.register(defineTool({
     name: 'yuque_create_doc',
-    description: '把一条笔记保存为语雀文档。正文为 Markdown；图片用 ![](attachment://<id>) 或本地路径内联引用，插件自动上传替换。',
+    description: '把一条笔记保存为语雀文档。正文为 Markdown；图片用 ![](attachment://<id>) 或本地路径内联引用，插件自动上传替换。前置条件：已配置 YUQUE_TOKEN 环境变量；未配置时不要调用本工具，直接告知用户设置 YUQUE_TOKEN。',
     parameters: {
       title: { type: 'string', required: true, description: '文档标题，从笔记内容提炼，简洁具体' },
       body: { type: 'string', required: true, description: 'Markdown 正文' },
