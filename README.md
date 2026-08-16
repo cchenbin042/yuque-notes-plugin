@@ -56,7 +56,7 @@ dsh plugin --profile <name> add github:cchenbin042/yuque-notes-plugin
 
 git 安装拉取的是源码而非构建产物，pnpm 会在安装时自动运行本插件的 `prepare` 脚本（`tsc` 构建出 `lib/`，故 `prepare` 脚本不可删）。pnpm ≥ 10 默认拒绝执行 git 依赖的构建脚本：首次 `add` 失败时，把 pnpm 打印的包键加入该 profile 的 `pnpm-workspace.yaml` 的 `allowBuilds`，再重新执行 `add`。该授权允许包代码在安装时于本机执行，建议锁定 commit（`github:cchenbin042/yuque-notes-plugin#<sha>`）后再授权。
 
-或 `pnpm pack` 后 `dsh plugin --profile <name> add ./yuque-notes-plugin-0.1.0.tgz`。
+或 `pnpm pack` 后 `dsh plugin --profile <name> add ./yuque-notes-plugin-0.1.1.tgz`。
 
 **4. 临时 overlay（仓库内调试，不安装）**
 
@@ -85,7 +85,7 @@ pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"
 
 | 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
-| `token`（或环境变量 `YUQUE_TOKEN`） | 无（必填） | 语雀 API token；只注入请求头，绝不写入工具参数、返回或日志 |
+| `token`（或环境变量 `YUQUE_TOKEN`） | 无（调用时必填） | 语雀 API token；只注入请求头，绝不写入工具参数、返回或日志。未配置时插件照常加载，调用语雀工具时才返回错误提示 |
 | `bookName` | `我的笔记` | 目标知识库名，不存在时自动创建；知识库默认私有创建 |
 | `baseUrl` | `https://www.yuque.com` | 语雀 API 基址，为私有化部署预留 |
 | `imageHosting.provider` | 无 | 图片图床类型，目前仅支持 `github` |
@@ -93,7 +93,7 @@ pnpm dsh --profile headless --patch ./cordis.patch.yml "<任务文本>"
 | `imageHosting.token`（或环境变量 `GITHUB_TOKEN`） | 无（有图片时必填） | GitHub token（contents API 写权限） |
 | `imageHosting.branch` / `basePath` / `cdn` | `main` / `images` / `jsdelivr` | 目标分支 / 仓库内目录前缀 / 对外 URL 形式（`jsdelivr` 或 `raw`） |
 
-未配置 token 时插件加载即报错（fail-loud），不会带病运行。
+未配置 token 时插件照常加载，只有调用语雀工具时才返回错误提示（fail-loud 移至调用时），不影响 Harness 启动与其他插件使用。
 
 ## 内置 skill：yuque-pdf-notes
 

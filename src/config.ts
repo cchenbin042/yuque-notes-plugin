@@ -27,19 +27,12 @@ export const DEFAULT_CONFIG: Pick<YuqueConfig, 'bookName' | 'baseUrl'> = {
 }
 
 export function resolveConfig(partial: Partial<YuqueConfig>): YuqueConfig {
-  const token = partial.token?.trim() ?? ''
-  if (token === '') {
-    throw new Error('yuque-notes: missing required config "token" (set YUQUE_TOKEN or cordis.yml config token)')
-  }
   const hosting = partial.imageHosting
   if (hosting !== undefined && hosting.provider !== 'github') {
     throw new Error(`yuque-notes: unsupported image hosting provider "${hosting.provider}"`)
   }
-  if (hosting !== undefined && hosting.token.trim() === '') {
-    throw new Error('yuque-notes: image hosting requires config "imageHosting.token"')
-  }
   return {
-    token,
+    token: partial.token?.trim() ?? '',
     bookName: partial.bookName?.trim() !== '' && partial.bookName !== undefined
       ? partial.bookName
       : DEFAULT_CONFIG.bookName,
